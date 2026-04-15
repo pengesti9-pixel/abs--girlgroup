@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>上门打包收原型</title>
+  <style>
+    body{margin:0;background:linear-gradient(180deg,#fff7f3 0%,#f3f5ff 100%);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+    .phone{width:375px;margin:16px auto;background:#f7f8ff;min-height:812px;border-radius:24px;overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(76,64,151,.12)}
+    .header{padding:16px;text-align:center;font-weight:700;font-size:28px;color:#2a2a33}
+    .card{margin:10px 12px;background:#fff;border-radius:18px;padding:14px;box-shadow:0 6px 16px rgba(76,64,151,.06)}
+    .row{display:flex;justify-content:space-between;align-items:center;min-height:42px}
+    .muted{color:#9b9b9b}
+    .line{height:1px;background:#f1f2ff;margin:6px 0}
+    .btn{position:sticky;bottom:0;margin:16px 12px;background:linear-gradient(90deg,#ffd84a 0%,#ffef72 100%);border:none;width:calc(100% - 24px);height:48px;border-radius:24px;font-weight:700;color:#3a3200;box-shadow:0 8px 18px rgba(255,211,58,.38)}
+    .staff-title{margin-top:8px;margin-bottom:8px;font-size:16px;font-weight:400}
+    .staff-note{margin:-2px 0 8px;color:#e53935;font-size:12px}
+    .staff-grid{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+    .staff-grid::-webkit-scrollbar{display:none}
+    .staff{min-width:104px;border:1px solid #ececff;border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;background:#fff;flex:0 0 auto;transition:.2s}
+    .staff.active{border-color:#f3d100;background:linear-gradient(180deg,#fffbe2 0%,#fff 100%);box-shadow:0 8px 18px rgba(244,209,0,.22)}
+    .avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid #f2f0ff;background:#fff}
+    .name{font-size:13px;font-weight:600}
+    .staff-tags { display: flex; flex-direction: column; gap: 4px; align-items: center; margin-top: 2px; }
+    .staff-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+    .tag-orange { color: #666; background: #f5f5f5; }
+    .tag-red { color: #666; background: #f5f5f5; }
+    .tag-blue { color: #666; background: #f5f5f5; }
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:rgba(0,0,0,.86);color:#fff;padding:8px 12px;border-radius:14px;display:none;z-index:999}
+    .toast.show{display:block}
+    
+    /* 预约时间半弹窗相关样式 */
+    .mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:none;justify-content:center;align-items:flex-end}
+    .mask.show{display:flex}
+    .bottom-sheet{width:375px;background:#fff;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .3s;z-index:101;display:flex;flex-direction:column}
+    .mask.show .bottom-sheet{transform:translateY(0)}
+    .sheet-header{padding:16px;text-align:center;font-size:16px;font-weight:600;border-bottom:1px solid #f5f5f5;position:relative}
+    .close-btn{position:absolute;right:16px;top:16px;color:#999;cursor:pointer;font-weight:normal;font-size:18px;line-height:1}
+    .sheet-body{display:flex;height:300px}
+    .sheet-sidebar{width:120px;background:#f7f8ff;overflow-y:auto}
+    .date-item{padding:14px 12px;font-size:14px;color:#666;cursor:pointer;white-space:nowrap}
+    .date-item.active{background:#fff;font-weight:600;color:#333}
+    .sheet-content{flex:1;background:#fff;overflow-y:auto;padding:0 16px}
+    .time-item{padding:14px 0;font-size:14px;color:#333;border-bottom:1px solid #f5f5f5;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="header">上门打包收</div>
+    <div class="card">
+      <div class="row"><b>本次预约回收物品</b><b>20件 ›</b></div>
+    </div>
+    <div class="card">
+      <div class="row"><b>上门信息</b><span class="muted">地址簿</span></div>
+      <div class="line"></div>
+      <div class="row"><span>淞沪路433号创智天地六号楼</span><span class="muted">›</span></div>
+      <div class="row"><span>8楼爱回收</span></div>
+      <div class="row"><span>小p</span></div>
+      <div class="staff-title">预约上门人员</div>
+      <div id="staff-note" class="staff-note">*上门人员以实际指派为准</div>
+      <div id="list" class="staff-grid"></div>
+      <div class="row" id="time-entry" style="cursor:pointer">
+        <span>预约时间</span>
+        <span class="muted" id="time-text">请选择预约时间 ›</span>
+      </div>
+      <div class="row"><span>手机号</span><span class="muted">158****3510</span></div>
+    </div>
+    <button id="submit" class="btn">马上下单</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- 时间选择半弹窗 -->
+  <div id="time-picker-mask" class="mask">
+    <div class="bottom-sheet">
+      <div class="sheet-header">
+        <span>预约时间</span>
+        <span class="close-btn" id="close-sheet">✕</span>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-sidebar" id="date-list"></div>
+        <div class="sheet-content" id="time-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = [
+      {
+        id:"g1", name:"周周", 
+        avatar:"https://api.dicebear.com/7.x/lorelei/svg?seed=ZhouZhou&backgroundColor=f3f5ff",
+        tags: [
+          {text: "累计收机182台", class: "tag-orange"}
+        ]
+      },
+      {
+        id:"g2", name:"果果", 
+        avatar:"https://api.dicebear.com/7.x/lorelei/svg?seed=GuoGuo&backgroundColor=f3f5ff",
+        tags: [
+          {text: "质检王", class: "tag-red"}
+        ]
+      },
+      {
+        id:"g3", name:"万万", 
+        avatar:"https://api.dicebear.com/7.x/lorelei/svg?seed=WanWan&backgroundColor=f3f5ff",
+        tags: [
+          {text: "5星员工", class: "tag-blue"}
+        ]
+      },
+      {
+        id:"k1", name:"任意金牌员工", 
+        avatar:"file:///Users/pengsijie114394/.cursor/projects/Applications-Google-Chrome-app/assets/image-0413184d-6d7c-4331-8651-65871c99eab7.png",
+        tags: []
+      }
+    ];
+    let selected = null;
+    let selectedTime = null;
+
+    const list = document.getElementById("list");
+    const toast = document.getElementById("toast");
+    const timeText = document.getElementById("time-text");
+
+    // 时间选择器DOM
+    const timeEntry = document.getElementById("time-entry");
+    const mask = document.getElementById("time-picker-mask");
+    const closeSheet = document.getElementById("close-sheet");
+    const dateList = document.getElementById("date-list");
+    const timeList = document.getElementById("time-list");
+
+    const allDates = ["明天 (周三)", "04月16日 (周四)", "04月17日 (周五)", "04月18日 (周六)", "04月19日 (周日)"];
+    let currentDates = allDates;
+    const times = ["09:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-19:00"];
+    let activeDateIndex = 0;
+
+    function tip(t){toast.textContent=t;toast.classList.add("show");clearTimeout(window.t);window.t=setTimeout(()=>toast.classList.remove("show"),1500)}
+    
+    function renderTimePlaceholder() {
+      if (selectedTime) return;
+      timeText.textContent = "请选择预约时间 ›";
+    }
+
+    function render(){
+      list.innerHTML = "";
+      data.forEach(item=>{
+        const el = document.createElement("div");
+        el.className = "staff" + (selected&&selected.id===item.id?" active":"");
+        
+        let tagsHtml = '';
+        if (item.tags && item.tags.length > 0) {
+          tagsHtml = '<div class="staff-tags">';
+          item.tags.forEach(tag => {
+            tagsHtml += `<div class="staff-tag ${tag.class}">${tag.text}</div>`;
+          });
+          tagsHtml += '</div>';
+        }
+
+        el.innerHTML = `
+          <img class="avatar" src="${item.avatar}" alt="${item.name}" />
+          <div class="name">${item.name}</div>
+          ${tagsHtml}
+        `;
+        el.onclick = ()=>{
+          selected = item;
+          // check valid dates for selected staff
+          currentDates = (selected.id !== "k1") ? allDates.slice(0, 2) : allDates;
+          
+          // clear selectedTime if it is no longer valid
+          if (selectedTime) {
+             let stillValid = currentDates.some(d => selectedTime.startsWith(d.split(" ")[0]));
+             if (!stillValid) {
+               selectedTime = null;
+               renderTimePlaceholder();
+             }
+          }
+          
+          render();
+        };
+        list.appendChild(el);
+      });
+    }
+
+    // 时间选择器逻辑
+    function renderSheet() {
+      dateList.innerHTML = currentDates.map((d, i) => `<div class="date-item ${i === activeDateIndex ? 'active' : ''}" onclick="selectDate(${i})">${d}</div>`).join("");
+      timeList.innerHTML = times.map(t => `<div class="time-item" onclick="selectTime('${t}')">${t}</div>`).join("");
+    }
+
+    window.selectDate = function(i) {
+      activeDateIndex = i;
+      renderSheet();
+    }
+
+    window.selectTime = function(t) {
+      selectedTime = currentDates[activeDateIndex].split(" ")[0] + " " + t;
+      timeText.textContent = selectedTime + " ›";
+      hideSheet();
+    }
+
+    function showSheet() {
+      currentDates = (!selected || selected.id === "k1") ? allDates : allDates.slice(0, 2);
+      if (activeDateIndex >= currentDates.length) {
+        activeDateIndex = 0;
+      }
+      mask.classList.add("show");
+      renderSheet();
+    }
+
+    function hideSheet() {
+      mask.classList.remove("show");
+    }
+
+    timeEntry.onclick = showSheet;
+    closeSheet.onclick = hideSheet;
+    mask.onclick = (e) => {
+      if (e.target === mask) hideSheet();
+    }
+
+    render();
+    renderTimePlaceholder();
+
+    document.getElementById("submit").onclick = ()=>{
+      if(!selected){tip("请先选择上门人员");return;}
+      if(!selectedTime){tip("请选择预约时间");return;}
+      tip("下单成功，已预约：" + selected.name);
+    };
+  </script>
+</body>
+</html>

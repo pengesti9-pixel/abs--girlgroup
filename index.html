@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上门打包收 - 原型与视觉展示</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+    .header { background: #fff; padding: 24px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; color: #1a1a24; }
+    .header p { margin: 8px 0 0 0; color: #666; font-size: 14px; }
+    .container { max-width: 1000px; margin: 40px auto; display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; padding: 0 20px; }
+    .card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.04); width: 375px; transition: transform 0.3s, box-shadow 0.3s; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .card-iframe-container { width: 100%; height: 460px; overflow: hidden; background: #f7f8ff; pointer-events: none; border-bottom: 1px solid #f0f0f0; position: relative; }
+    /* 缩放 iframe 以在卡片中预览 */
+    .card iframe { width: 375px; height: 812px; border: none; transform: scale(0.6); transform-origin: top center; margin: 0 auto; display: block; }
+    /* 高保真图因为本身做了缩放，稍微调整下预览比例 */
+    .card.mockup iframe { width: 1000px; transform: scale(0.35); transform-origin: top center; }
+    .card-content { padding: 24px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: #1a1a24; }
+    .card-desc { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px; }
+    .btn { display: inline-block; padding: 12px 24px; background: linear-gradient(90deg, #1890ff 0%, #006aff 100%); color: #fff; border-radius: 24px; font-weight: 500; font-size: 15px; width: fit-content; margin: 0 auto; box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3); }
+    .card:hover .btn { background: linear-gradient(90deg, #40a9ff 0%, #1890ff 100%); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>「上门打包收」项目演示空间</h1>
+    <p>包含交互原型与高保真视觉切图，点击卡片即可全屏预览</p>
+  </div>
+  
+  <div class="container">
+    <!-- 原型链接 -->
+    <a href="miniapp-prototype.html" target="_blank" class="card">
+      <div class="card-iframe-container">
+        <!-- 利用 iframe 实现微缩预览 -->
+        <iframe src="miniapp-prototype.html" scrolling="no" tabindex="-1"></iframe>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-title">1. 交互原型 (MiniApp)</div>
+          <div class="card-desc">可点击的交互式原型。展示核心预约页的完整交互逻辑、弹窗呼出及人员选择流转。</div>
+        </div>
+        <div class="btn">沉浸式体验原型</div>
+      </div>
+    </a>
+
+    <!-- 视觉图链接 -->
+    <a href="high-fidelity-mockup.html" target="_blank" class="card mockup">
+      <div class="card-iframe-container">
+        <iframe src="high-fidelity-mockup.html" scrolling="no" tabindex="-1"></iframe>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-title">2. 高保真视觉图 (Mockup)</div>
+          <div class="card-desc">UI 视觉定稿。展示默认状态、选中女团成员、选中金牌员工等不同逻辑下的视觉切片。</div>
+        </div>
+        <div class="btn">查看高清视觉图</div>
+      </div>
+    </a>
+  </div>
+</body>
+</html>
